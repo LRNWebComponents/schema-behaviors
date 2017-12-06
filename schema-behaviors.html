@@ -13,11 +13,11 @@ A behavior for mixing-in schema and common schema operations.
   window.SchemaBehaviors.Schema = {
     properties: {
       /**
-       * Unique Schema ID
+       * Unique Resource ID, generated when schemaMap processes.
        */
-      schemaGuid: {
+      schemaResourceID: {
         type: String,
-        computed: '_computeSchemaGuid()',
+        value: '',
       },
       /**
        * Schema Map for this element.
@@ -38,17 +38,9 @@ A behavior for mixing-in schema and common schema operations.
       },
     },
     /**
-     * Compute schema GUID
-     */
-    _computeSchemaGuid: function() {
-      let guid = this.generateGUID();
-      this.setAttribute('resource', guid);
-      return this.generateGUID();
-    },
-    /**
      * Generate a uinque ID
      */
-    generateGUID: function() {
+    generateResourceID: function() {
       function idPart() {
         return Math.floor((1 + Math.random()) * 0x10000)
           .toString(16)
@@ -62,12 +54,17 @@ A behavior for mixing-in schema and common schema operations.
      */
     _schemaMapChanged: function(newValue, oldValue) {
       if (typeof newValue !== typeof undefined) {
+        // use this to tie into schemaResourceID build
+        if (this.schemaResourceID == '') {
+          this.schemaResourceID = this.generateResourceID();
+          this.setAttribute('resource', this.schemaResourceID);
+        }
         let prefixes = newValue.prefix;
         let prefix = '';
         // build prefix string
         for (var property in prefixes) {
-          if (properties.hasOwnProperty(property)) {
-            prefix += property + ':' + properties[property] + ' ';
+          if (prefixes.hasOwnProperty(property)) {
+            prefix += property + ':' + prefixes[property] + ' ';
           }
         }
         // set prefix on the main element itself
